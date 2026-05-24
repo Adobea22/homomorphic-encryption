@@ -1,276 +1,240 @@
-# Homomorphic Encryption Implementation
-
-A comprehensive Python implementation of homomorphic encryption schemes with basic operations on encrypted data.
+# Homomorphic Encryption Project
 
 ## Overview
+This project implements **Paillier Homomorphic Encryption**, a cryptographic system that allows mathematical operations to be performed on encrypted data without decrypting it first.
 
-This project implements three types of homomorphic encryption:
+## What is Homomorphic Encryption?
 
-1. **Paillier Cryptosystem** - Additively Homomorphic
-2. **RSA Cryptosystem** - Multiplicatively Homomorphic  
-3. **BFV (Brakerski-Fan-Vercauteren)** - Somewhat Homomorphic
+Homomorphic encryption is a form of encryption that permits users to perform computations on encrypted data without first decrypting it. The results of operations remain in encrypted form and, when decrypted, match the results of operations performed on the plaintext.
+
+### Real-World Applications
+- **Cloud Computing**: Perform computations on sensitive data in the cloud without exposing it
+- **Electronic Voting**: Tally encrypted votes without revealing individual choices
+- **Medical Data Analysis**: Analyze patient data while maintaining privacy
+- **Financial Services**: Compute statistics on encrypted financial data
+- **Machine Learning**: Train models on encrypted datasets
+
+## Paillier Cryptosystem
+
+The Paillier cryptosystem is a **partially homomorphic** encryption scheme with the following properties:
+
+### Supported Operations
+1. **Additive Homomorphism**: E(m₁) ⊗ E(m₂) = E(m₁ + m₂)
+   - Adding two encrypted numbers gives the encryption of their sum
+   
+2. **Scalar Multiplication**: E(m)^k = E(k × m)
+   - Raising an encrypted number to a power k gives the encryption of k times that number
+
+### Mathematical Foundation
+
+#### Key Generation
+1. Choose two large prime numbers p and q
+2. Compute n = p × q
+3. Compute λ = lcm(p-1, q-1)
+4. Choose generator g = n + 1
+5. Compute μ = (L(g^λ mod n²))⁻¹ mod n
+   - Where L(x) = (x-1)/n
+
+**Public Key**: (n, g)
+**Private Key**: (λ, μ)
+
+#### Encryption
+Given plaintext m and public key (n, g):
+1. Choose random r where gcd(r, n) = 1
+2. Ciphertext: c = g^m × r^n mod n²
+
+#### Decryption
+Given ciphertext c and private key (λ, μ):
+1. Plaintext: m = L(c^λ mod n²) × μ mod n
 
 ## Project Structure
 
 ```
-homomorphic_encryption/
-├── paillier/
-│   ├── paillier.py          # Paillier implementation
-│   └── example_paillier.py  # Usage examples
-├── rsa/
-│   ├── rsa.py               # RSA implementation
-│   └── example_rsa.py       # Usage examples
-├── bfv/
-│   ├── bfv.py               # BFV implementation
-│   └── example_bfv.py       # Usage examples
-└── README.md                # This file
+homomorphic-encryption/
+│
+├── homomorphic_encryption.py    # Core implementation
+├── interactive_demo.py          # Interactive calculator
+├── secure_salary_demo.py        # Practical salary computation example
+└── README.md                    # This file
 ```
 
-## What is Homomorphic Encryption?
+## Files Description
 
-Homomorphic encryption allows computations to be performed on encrypted data without decryption. The result, when decrypted, is the same as if the operations were performed on plaintext.
+### 1. homomorphic_encryption.py
+Core implementation of the Paillier cryptosystem with:
+- Key generation (512-bit default)
+- Encryption and decryption
+- Homomorphic addition
+- Homomorphic scalar multiplication
+- Demonstration with voting example
 
-### Key Properties:
+### 2. interactive_demo.py
+Interactive command-line calculator that lets you:
+- Add encrypted numbers
+- Multiply encrypted numbers by constants
+- Perform complex calculations: (a + b) × k + c
+- Calculate encrypted averages
 
-- **Additive Homomorphic**: E(m₁) ⊕ E(m₂) = E(m₁ + m₂)
-- **Multiplicative Homomorphic**: E(m₁) ⊗ E(m₂) = E(m₁ × m₂)
-- **Scalar Operations**: E(m)^k = E(k × m) or E(m)^k = E(m^k)
+### 3. secure_salary_demo.py
+Practical demonstration showing:
+- Secure salary aggregation
+- Computing bonuses on encrypted data
+- Privacy-preserving analytics
 
-## 1. Paillier Cryptosystem
+## Installation & Usage
 
-### Characteristics:
-- **Type**: Partially Homomorphic (Additive)
-- **Operations**: Addition, Scalar Multiplication
-- **Plaintext Range**: 0 to n-1
-- **Security**: Based on Computational Composite Residuosity Assumption
+### Prerequisites
+- Python 3.6 or higher
+- No external dependencies required (pure Python implementation)
 
-### Features:
-- Homomorphic Addition: E(m₁) × E(m₂) = E(m₁ + m₂)
-- Scalar Multiplication: E(m)^k = E(k × m)
-- Probabilistic encryption (randomized)
-- Semantically secure
+### Running the Demos
 
-### Usage Example:
+#### 1. Basic Demonstration
+```bash
+python3 homomorphic_encryption.py
+```
+This runs a comprehensive demonstration showing:
+- Key generation
+- Encryption/decryption
+- Homomorphic addition
+- Homomorphic multiplication
+- Combined operations
+- Encrypted voting example
+
+#### 2. Interactive Calculator
+```bash
+python3 interactive_demo.py
+```
+Allows you to experiment with encrypted calculations interactively.
+
+#### 3. Salary Computation Example
+```bash
+python3 secure_salary_demo.py
+```
+Demonstrates computing payroll statistics on encrypted data.
+
+## Example Usage
 
 ```python
-from paillier.paillier import generate_keys
+from homomorphic_encryption import PaillierHomomorphicEncryption
 
-# Generate keys
-public_key, private_key = generate_keys(key_size=512)
+# Initialize the system
+paillier = PaillierHomomorphicEncryption(key_size=512)
 
-# Encrypt
-c1 = public_key.encrypt(42)
-c2 = public_key.encrypt(58)
+# Encrypt two numbers
+a = 15
+b = 27
+enc_a = paillier.encrypt(a)
+enc_b = paillier.encrypt(b)
 
-# Add encrypted values
-c_sum = public_key.add_encrypted(c1, c2)
+# Add them without decryption
+enc_sum = paillier.add_encrypted(enc_a, enc_b)
 
-# Decrypt result
-result = private_key.decrypt(c_sum)
-print(result)  # Output: 100
+# Decrypt the result
+result = paillier.decrypt(enc_sum)
+print(f"Result: {result}")  # Output: 42
 
-# Scalar multiplication
-c_scaled = public_key.multiply_encrypted_by_plaintext(c1, 5)
-result = private_key.decrypt(c_scaled)
-print(result)  # Output: 210
+# Multiply by constant
+enc_doubled = paillier.multiply_encrypted_by_constant(enc_a, 2)
+doubled = paillier.decrypt(enc_doubled)
+print(f"Doubled: {doubled}")  # Output: 30
 ```
 
-### Running the Example:
+## Performance Considerations
 
+- **Key Size**: 512-bit keys are used for demonstration. For production:
+  - Use 2048-bit or 3072-bit keys for security
+  - Larger keys = more security but slower operations
+  
+- **Operation Complexity**:
+  - Encryption: O(log n)
+  - Decryption: O(log n)
+  - Addition: O(1) on ciphertext
+  - Multiplication: O(log k) where k is the constant
+
+## Security Notes
+
+⚠️ **Important Security Considerations**:
+
+1. **Key Size**: This demo uses 512-bit keys for speed. Production systems should use 2048+ bits.
+
+2. **Random Number Generation**: Uses Python's `random` module. For cryptographic applications, use `secrets` or `os.urandom`.
+
+3. **Timing Attacks**: This implementation doesn't protect against side-channel attacks.
+
+4. **Multiplicative Homomorphism**: Paillier only supports addition and scalar multiplication, not multiplication of two encrypted values.
+
+## Limitations
+
+- **Partially Homomorphic**: Only supports addition and scalar multiplication
+- **Ciphertext Expansion**: Encrypted data is larger than plaintext
+- **Computational Overhead**: Operations on encrypted data are slower
+- **No Division**: Cannot divide encrypted values
+
+## For Your Project Report
+
+### Key Concepts to Include:
+
+1. **What Problem Does It Solve?**
+   - Enables computation on encrypted data
+   - Maintains privacy in cloud computing
+   - Allows data analysis without data exposure
+
+2. **How It Works** (High-Level):
+   - Uses mathematical properties of modular arithmetic
+   - Addition in plaintext = multiplication in ciphertext
+   - Scalar multiplication in plaintext = exponentiation in ciphertext
+
+3. **Practical Applications**:
+   - Secure voting systems
+   - Privacy-preserving medical research
+   - Confidential financial analytics
+   - Secure machine learning
+
+4. **Advantages**:
+   - Strong mathematical security foundation
+   - Deterministic operations on encrypted data
+   - No need to share decryption keys
+
+5. **Challenges**:
+   - Computational overhead
+   - Limited to certain operations
+   - Large ciphertext sizes
+
+## Testing the Implementation
+
+Run all three scripts to verify:
 ```bash
-cd paillier
-python example_paillier.py
+# Run comprehensive demo
+python3 homomorphic_encryption.py
+
+# Test interactive features
+python3 interactive_demo.py
+
+# See practical application
+python3 secure_salary_demo.py
 ```
 
-## 2. RSA Cryptosystem
-
-### Characteristics:
-- **Type**: Partially Homomorphic (Multiplicative)
-- **Operations**: Multiplication, Exponentiation
-- **Plaintext Range**: 0 to n-1
-- **Security**: Based on RSA Problem (Integer Factorization)
-
-### Features:
-- Homomorphic Multiplication: E(m₁) × E(m₂) = E(m₁ × m₂)
-- Exponentiation: E(m)^k = E(m^k)
-- Deterministic encryption
-- Limited by plaintext size constraints
-
-### Usage Example:
-
-```python
-from rsa.rsa import generate_keys
-
-# Generate keys
-public_key, private_key = generate_keys(key_size=512)
-
-# Encrypt
-c1 = public_key.encrypt(3)
-c2 = public_key.encrypt(5)
-
-# Multiply encrypted values
-c_product = public_key.multiply_encrypted(c1, c2)
-
-# Decrypt result
-result = private_key.decrypt(c_product)
-print(result)  # Output: 15 (mod n)
-
-# Power operation
-c_power = public_key.power_encrypted(c1, 3)
-result = private_key.decrypt(c_power)
-print(result)  # Output: 27 (mod n)
-```
-
-### Running the Example:
-
-```bash
-cd rsa
-python example_rsa.py
-```
-
-## 3. BFV (Somewhat Homomorphic)
-
-### Characteristics:
-- **Type**: Somewhat Homomorphic (Both Addition and Multiplication)
-- **Operations**: Addition, Multiplication (limited depth)
-- **Polynomial Ring**: Cyclotomic polynomial Z[x]/(x^n + 1)
-- **Security**: Based on Ring Learning With Errors (RLWE)
-
-### Features:
-- Supports both addition and multiplication
-- Noise management (noise grows with operations)
-- SIMD-like batch operations on vectors
-- Limited by noise budget (operation depth)
-
-### Usage Example:
-
-```python
-from bfv.bfv import generate_keys, BFVParameters
-
-# Generate keys
-params = BFVParameters(degree=256, plaintext_modulus=65537)
-public_key, private_key, relin_key = generate_keys(params)
-
-# Encrypt vectors
-m1 = [10, 20, 30, 40]
-m2 = [2, 3, 1, 2]
-
-c1 = public_key.encrypt(m1)
-c2 = public_key.encrypt(m2)
-
-# Add encrypted vectors
-c_sum = public_key.add_encrypted(c1, c2)
-result = private_key.decrypt(c_sum)
-print(result)  # Output: [12, 23, 31, 42]
-
-# Multiply encrypted vectors
-c_product = public_key.multiply_encrypted(c1, c2)
-result = private_key.decrypt(c_product)
-print(result)  # Approximate product
-```
-
-### Running the Example:
-
-```bash
-cd bfv
-python example_bfv.py
-```
-
-## Comparison Table
-
-| Feature | Paillier | RSA | BFV |
-|---------|----------|-----|-----|
-| Addition | ✓ | ✗ | ✓ |
-| Multiplication | ✗ | ✓ | ✓ |
-| Multiple Operations | ✓ | ✗ | Limited |
-| Deterministic | ✗ | ✓ | ✗ |
-| Key Size | Large | Large | Very Large |
-| Noise Growth | None | N/A | Yes |
-| Batch Processing | ✗ | ✗ | ✓ |
-
-## Use Cases
-
-### Paillier:
-- Secure voting systems
-- Privacy-preserving aggregation
-- Encrypted data analytics (sum operations)
-- Encrypted auctions
-
-### RSA:
-- Digital signatures (deterministic)
-- Encrypted bit operations
-- Authorization systems
-- Small encrypted computations
-
-### BFV:
-- Complex encrypted computations
-- Machine learning on encrypted data
-- DNA sequence analysis (encrypted)
-- Outsourced computation
-- Privacy-preserving databases
-
-## Installation Requirements
-
-Python 3.6+
-
-No external dependencies required for basic implementations.
-
-For production use, consider using established libraries:
-- `phe` - Python Homomorphic Encryption library
-- `TenSEAL` - Homomorphic Encryption library for machine learning
-- `SEAL` - Simple Encrypted Arithmetic Library
-
-## Important Notes
-
-### Security Considerations:
-1. **Key Size**: Use at least 2048 bits for production use
-2. **Random Number Generation**: Uses Python's `random` module (suitable for examples only; use `secrets` or `os.urandom` for cryptography)
-3. **Noise Management**: In BFV, monitor noise budget to prevent decryption failures
-4. **Moduli Selection**: Prime selection can impact security and performance
-
-### Performance:
-- Paillier: Moderate speed, suitable for practice
-- RSA: Fast encryption but limited operations
-- BFV: Slower, requires large key sizes; optimized for batch operations
-
-### Limitations:
-- **Paillier**: Only addition (no general multiplication)
-- **RSA**: Only multiplication (no addition)
-- **BFV**: Limited operation depth due to noise growth
-
-## Examples Running Instructions
-
-### Run all examples:
-
-```bash
-# Paillier
-python paillier/example_paillier.py
-
-# RSA
-python rsa/example_rsa.py
-
-# BFV
-python bfv/example_bfv.py
-```
-
-### Expected Output Snippets:
-
-**Paillier**: Demonstrates addition of encrypted numbers and scalar multiplication
-
-**RSA**: Shows multiplication on encrypted data and power operations
-
-**BFV**: Illustrates both addition and multiplication with vector processing
+All outputs should show ✓ SUCCESS for correctness verification.
 
 ## Further Reading
 
-- **Paillier**: "Public-Key Cryptosystems Based on Composite Degree Residuosity Classes" (Paillier, 1999)
-- **RSA**: "A Method for Obtaining Digital Signatures and Public-Key Cryptosystems" (Rivest et al., 1978)
-- **BFV**: "Encrypted Control for Cyber-Physical Systems" (Brakerski et al., 2014)
+- **Original Paper**: "Public-Key Cryptosystems Based on Composite Degree Residuosity Classes" by Pascal Paillier (1999)
+- **Fully Homomorphic Encryption**: Look into BGV, BFV, and CKKS schemes
+- **Libraries**: python-phe, SEAL (Microsoft), HElib
 
-## License
+## Authors & License
 
-Educational and demonstration purposes.
+Created for educational purposes - Cybersecurity Project
+University of Mines and Technology
 
-## Disclaimer
+## Questions?
 
-These implementations are for educational purposes. Do not use in production without professional security review. Use established cryptographic libraries for real-world applications.
+For any questions about the implementation or concepts:
+- Review the inline comments in the code
+- Check the demonstration outputs
+- Experiment with the interactive demo
+
+---
+
+**Note**: This is an educational implementation. For production use, consider established libraries like python-phe or Microsoft SEAL.
